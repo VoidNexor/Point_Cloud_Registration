@@ -32,6 +32,8 @@ class ScriptSmokeTests(unittest.TestCase):
                 str(ROOT / script),
                 "bun045.pts",
                 "bun000.pts",
+                "--seed",
+                "0",
             ],
             cwd=self.workdir,
             env=environment,
@@ -52,6 +54,13 @@ class ScriptSmokeTests(unittest.TestCase):
             "output01",
             ("bun045.pts", "bun045.xf", "bun045.txt"),
         )
+
+    def test_entry_points_are_import_safe(self):
+        import icp
+        import icp_ply_pts
+
+        self.assertTrue(callable(icp.main))
+        self.assertTrue(callable(icp_ply_pts.main))
 
 
 if __name__ == "__main__":

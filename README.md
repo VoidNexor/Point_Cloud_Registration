@@ -105,9 +105,16 @@ python icp_ply_pts.py file1.pts file2.pts
 
 ```
 
+两个脚本都支持 `--output`、`--iterations`、`--sample-size` 和 `--seed` 参数。使用 `--help` 查看完整选项；例如：
+
+```
+python icp.py PLY_PTS/bun045.pts PLY_PTS/bun000.pts --output /tmp/icp-result --seed 0
+```
+
 注意 `.xf` 文件名会根据 `.pts` 文件名自动推断。程序会首先在对应输出目录中查找目标 `.xf`，然后再查找输入文件旁边的 `.xf`；如果两处都没有，就使用单位矩阵。
 
 `icp_ply_pts.py` 默认输出到 `output01/`，`icp.py` 默认输出到 `output02/`。两个目录均相对于运行命令时的当前目录。
+这些输出目录和运行日志属于生成物，已加入 Git 忽略规则。
 
 ## 程序解释
 
