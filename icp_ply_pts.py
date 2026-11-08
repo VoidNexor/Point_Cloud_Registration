@@ -34,22 +34,22 @@ pts1 = load_pts(file1)
 pts2 = load_pts(file2)
 
 # 检查xf文件是否存在
-file1_xf = '.'.join(file1.split('.')[:-1]) + '.xf'
-file2_xf = '.'.join(file2.split('.')[:-1]) + '.xf'
+file1_xf = os.path.splitext(file1)[0] + '.xf'
+file2_xf = os.path.splitext(file2)[0] + '.xf'
 if (not os.path.isfile(file1_xf)):
     print("警告：找不到.xf文件：" + file1_xf)
     print("默认使用4x4单位矩阵...")
-    M1 = np.identity(4)
+    M1 = np.matrix(np.identity(4))
 else:
     M1 = load_xf(file1_xf)
 
 # 注意，如果存在"output"file2.xf，则需要加载，否则会覆盖之前的工作
-output_file2_xf = './' + output_path + '/' + file2_xf.split('/')[-1]
+output_file2_xf = os.path.join(output_path, os.path.basename(file2_xf))
 if (not os.path.isfile(output_file2_xf)):
     if (not os.path.isfile(file2_xf)):
         print("警告：找不到.xf文件：" + file2_xf)
         print("默认使用4x4单位矩阵...")
-        M2 = np.identity(4)
+        M2 = np.matrix(np.identity(4))
     else:
         M2 = load_xf(file2_xf)
 else:
@@ -106,7 +106,11 @@ while (1.0 - ratio > 0.0001 and count < max_iterations):
         d += AiT*bi
 
     # 解线性方程组并计算Micp
-    x = np.linalg.solve(C,d).flatten()
+    try:
+        x = np.linalg.solve(C,d).flatten()
+    except np.linalg.LinAlgError:
+        print("错误：点云几何信息不足，无法计算ICP变换")
+        raise SystemExit(1)
     rx,ry,rz,tx,ty,tz = x
     Micp = np.matrix([[1.0, ry*rx - rz, rz*rx + ry, tx],[rz, 1.0 + rz*ry*rx, rz*ry - rx, ty], [-ry, rx, 1.0, tz], [0, 0, 0, 1.0]])
 
@@ -137,18 +141,18 @@ log_message = "成功终止，采样的平均距离为 {}".format(new_mean)
 log_to_file(log_message, "结果记录.txt")  # 将日志写入文件
 
 # 将结果写入文件
-output_file1_pts = output_path + file1.split('/')[-1]
-output_file1_xf = output_path + file1_xf.split('/')[-1]
-output_file2_pts = output_path + file2.split('/')[-1]
-output_file2_xf = output_path + file2_xf.split('/')[-1]
+output_file1_pts = os.path.join(output_path, os.path.basename(file1))
+output_file1_xf = os.path.join(output_path, os.path.basename(file1_xf))
+output_file2_pts = os.path.join(output_path, os.path.basename(file2))
+output_file2_xf = os.path.join(output_path, os.path.basename(file2_xf))
 write_pts(output_file1_pts, pts1)
 write_pts(output_file2_pts, pts2)
 write_xf(output_file1_xf, M1)
 write_xf(output_file2_xf, M2)
 
 # 将转移矩阵写入文件.txt，方便配合CloudCompare使用
-file1_txt = output_path + '.'.join(file1.split('/')[-1].split('.')[:-1]) + '.txt'
-file2_txt = output_path + '.'.join(file2.split('/')[-1].split('.')[:-1]) + '.txt'
+file1_txt = os.path.join(output_path, os.path.splitext(os.path.basename(file1))[0] + '.txt')
+file2_txt = os.path.join(output_path, os.path.splitext(os.path.basename(file2))[0] + '.txt')
 write_txt(file1_txt, M1)
 write_txt(file2_txt, M2)
 

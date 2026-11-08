@@ -1,5 +1,7 @@
 # 点云配准
 
+这是一个使用 Python 和 NumPy 实现的点云 ICP 配准示例，包含 Stanford Bunny 数据和可选的 Open3D FPFH 快速全局配准流程。
+
 此项目是在Reilly Bova公开的[Point-Cloud-Registration](https://github.com/ReillyBova/Point-Cloud-Registration)基础上的拓展，新增了基于FPFH特征的快速全局配准（Fast Global Registration）功能。
 通过Open3D库中的FPFH特征描述符和特征匹配算法，本项目实现了点云数据的快速粗配准，为精确配准提供了一个接近正确的初始对齐估计。
 
@@ -16,9 +18,38 @@
 
 ### 先决条件和安装
 
-这个项目配准部分只需要 Python 3 和 [NumPy](http://www.numpy.org/) Python 库。用户可使用 pip 或 conda 来安装 NumPy。
+需要 Python 3.8 或更高版本。核心 ICP 流程只需要 NumPy：
 
-要对没有法向量的数据集进行法向量计算，则需要安装Open3D 软件包，使用现有的Open3D的库函数进行法向量计算，并将格式转为pts格式。
+```
+python -m pip install -r requirements.txt
+```
+
+运行内置 smoke tests：
+
+```
+python -m unittest discover -s tests -v
+```
+
+要运行 PLY 转换和 FPFH 快速全局配准，还需要安装 Open3D：
+
+```
+python -m pip install -r requirements-optional.txt
+```
+
+### 最小示例
+
+以下命令会将 `bun045` 配准到 `bun000`，结果写入当前目录的 `output02/`：
+
+```
+python icp.py PLY_PTS/bun045.pts PLY_PTS/bun000.pts
+```
+
+如果 `.xf` 文件不存在，程序会使用单位变换矩阵；输出目录会自动创建。
+
+### 可选的 PLY / FPFH 流程
+
+要对没有法向量的数据集进行法向量计算，则需要安装 Open3D，使用现有的 Open3D 库函数将 PLY 转换为 PTS：
+
 ```
 python PLY_PTS.py bunny/data/bun000.ply
 python PLY_PTS.py bunny/data/bun045.ply
@@ -48,7 +79,7 @@ python registration.py bunny/data/top3.ply bunny/data/bun045.ply
 
 ### 运行脚本
 
-运行这个脚本需要两对文件（总共四个文件）：`file1.pts`、`file1.xf`、`file2.pts` 和 `file2.xf`。当运行时，脚本将尝试调整 `file1.xf` 中的刚体变换，以使 `file1.pts` 中的点与通过 `file2.xf` 中的矩阵变换后的目标点对齐。最后，脚本将在 `./output/` 输出结果。
+运行这个脚本需要两个 `.pts` 文件；对应的 `.xf` 文件是可选的。程序会尝试调整源点云的刚体变换，使其与目标点云对齐，并将结果写入 `output01/` 或 `output02/`。
 
 程序的执行方式如下：
 
@@ -57,9 +88,9 @@ python icp_ply_pts.py file1.pts file2.pts
 
 ```
 
-注意 `.xf` 文件是隐含的。程序会首先在输出路径如 `./output/` 中查找 `file.xf`，然后是在提供的文件路径中查找该文件。这样做是为了避免用原始（不准确的）变换覆盖已对齐的变换。
+注意 `.xf` 文件名会根据 `.pts` 文件名自动推断。程序会首先在对应输出目录中查找目标 `.xf`，然后再查找输入文件旁边的 `.xf`；如果两处都没有，就使用单位矩阵。
 
-路径`output/`为原项目输出路径， `icp_ply_pts.py` 默认输出路径为 `output01/`， `icp_pts_txt.py` 默认输出路径为 `output02/`，如果需要，用户可以更改输出路径。
+`icp_ply_pts.py` 默认输出到 `output01/`，`icp.py` 默认输出到 `output02/`。两个目录均相对于运行命令时的当前目录。
 
 ## 程序解释
 

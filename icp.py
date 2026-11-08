@@ -37,22 +37,22 @@ pts1 = load_pts(file1)
 pts2 = load_pts(file2)
 
 # Check if xf files exist
-file1_xf = '.'.join(file1.split('.')[:-1]) + '.xf'
-file2_xf = '.'.join(file2.split('.')[:-1]) + '.xf'
+file1_xf = os.path.splitext(file1)[0] + '.xf'
+file2_xf = os.path.splitext(file2)[0] + '.xf'
 if (not os.path.isfile(file1_xf)):
     print("Warning: Could not find .xf file: " + file1_xf)
     print("Defaulting to 4x4 identity matrix...")
-    M1 = np.identity(4)
+    M1 = np.matrix(np.identity(4))
 else:
     M1 = load_xf(file1_xf)
 
 # NB need to load "output" file2.xf if avaliable or will overwrite previous work
-output_file2_xf = './output02/' + file2_xf.split('/')[-1]
+output_file2_xf = os.path.join('output02', os.path.basename(file2_xf))
 if (not os.path.isfile(output_file2_xf)):
     if (not os.path.isfile(file2_xf)):
         print("Warning: Could not find .xf file: " + file2_xf)
         print("Defaulting to 4x4 identity matrix...")
-        M2 = np.identity(4)
+        M2 = np.matrix(np.identity(4))
     else:
         M2 = load_xf(file2_xf)
 else:
@@ -68,10 +68,11 @@ for p in pts2:
 # ICP iteration (until improvement is less than 0.01%)
 print("Starting iteration...")
 ratio = 0.0
+max_iterations = 50
 M2_inverse = M2.I
 pts_index = [i for i in range(len(pts1))]
 count = 0
-while (ratio < 0.9999):
+while (ratio < 0.9999 and count < max_iterations):
     # Randomly pick 1000 points
     shuffle(pts_index)
     # Apply M1 and the inverse of M2
@@ -107,7 +108,11 @@ while (ratio < 0.9999):
         d += AiT*bi
 
     # Solve the linear system of equations and compute Micp
-    x = np.linalg.solve(C,d).flatten()
+    try:
+        x = np.linalg.solve(C,d).flatten()
+    except np.linalg.LinAlgError:
+        print("Error: the point set does not provide enough geometry for ICP")
+        raise SystemExit(1)
     rx,ry,rz,tx,ty,tz = x
     Micp = np.matrix([[1.0, ry*rx - rz, rz*rx + ry, tx],[rz, 1.0 + rz*ry*rx, rz*ry - rx, ty], [-ry, rx, 1.0, tz], [0, 0, 0, 1.0]])
 
@@ -132,10 +137,10 @@ while (ratio < 0.9999):
 print("Terminated successfully with a sampled mean distance of {}".format(new_mean))
 
 # Write results to file
-output_file1_pts = './output02/' + file1.split('/')[-1]
-output_file1_xf = './output02/' + file1_xf.split('/')[-1]
-output_file2_pts = './output02/' + file2.split('/')[-1]
-output_file2_xf = './output02/' + file2_xf.split('/')[-1]
+output_file1_pts = os.path.join('output02', os.path.basename(file1))
+output_file1_xf = os.path.join('output02', os.path.basename(file1_xf))
+output_file2_pts = os.path.join('output02', os.path.basename(file2))
+output_file2_xf = os.path.join('output02', os.path.basename(file2_xf))
 write_pts(output_file1_pts, pts1)
 write_pts(output_file2_pts, pts2)
 write_xf(output_file1_xf, M1)
