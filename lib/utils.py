@@ -24,9 +24,8 @@ def load_xf(file_name):
         result = []
         for r in rows:
             c = []
-            for v in r.split(' '):
-                if (len(v) > 0):
-                    c.append(float(v))
+            for v in r.split():
+                c.append(float(v))
             if (len(c) != 4):
                 print("错误：在{}中检测到的列数无效".format(file_name))
                 c = [0, 0, 0, 0]
@@ -44,7 +43,7 @@ def load_pts(file_name):
         for r in rows:
             if (len(r) == 0):
                 continue
-            pData = [float(v) for v in r.split(' ')]
+            pData = [float(v) for v in r.split()]
             if (len(pData) != 6):
                 print("错误：在{}中为一个点提供的数据不足".format(file_name))
                 pData = [0, 0, 0, 0, 0, 0]
