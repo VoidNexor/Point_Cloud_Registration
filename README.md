@@ -14,7 +14,24 @@
 
 ## 开始
 
-按照以下说明，您可以在本地机器上运行这个脚本（注意：这个脚本只在 windows 11 上测试过，但也应该适用于其他系统）。
+按照以下说明，您可以在本地机器上运行这个脚本。项目已在 Windows 11 和 Linux 环境中验证。
+
+## English quick start
+
+The core ICP workflow requires Python 3.8+ and NumPy. Install the dependency and run a bundled example:
+
+```bash
+python -m pip install -r requirements.txt
+python icp.py PLY_PTS/bun045.pts PLY_PTS/bun000.pts
+```
+
+Results are written to `output02/`. The `.xf` transform files are optional; identity transforms are used when they are absent. Run the smoke tests with:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+Install `requirements-optional.txt` for PLY conversion and Open3D FPFH global registration.
 
 ### 先决条件和安装
 
@@ -118,7 +135,7 @@ python icp_ply_pts.py file1.pts file2.pts
 
 查看此项目配准前后结果，需配合CloudCompare进行查看。
 
-要自己生成对齐的兔子，请先在icp_ply_pts.py或icp_pts_txt.py设置输出路径，或者删除原有输出文件夹，然后运行这些命令：
+要自己生成对齐的兔子，请运行 `icp_ply_pts.py`；如需使用另一套核心 ICP 输出，则运行 `icp.py`。两个脚本都会在运行目录下生成对应的输出目录。
 
 数据集
 ```
